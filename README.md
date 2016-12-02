@@ -1,2 +1,6 @@
 # hello-world
-test repository
+Hey Charlie,
+
+Editing and committing this message
+
+Cheers
