@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k6-app2
+  labels:
+    app: k6-app2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k6-app2
+  template:
+    metadata:
+      name: k6-app2
+      labels:
+        app: k6-app2
+    spec:
+      containers:
+        - name: k6-app2
+          image: gcr.io/evocative-bus-288811/k6:1.0
+          command: ["/bin/sh","-c"]
+          args: ["mkdir /k6storage-mount && sleep infinity"]
+          securityContext:
+              privileged: true
+              allowPrivilegeEscalation: true
+          env:
+            - name: "GOOGLE_APPLICATION_CREDENTIALS"
+              value: "/var/run/secret/cloud.google.com/sa_key.json"
+          volumeMounts:
+            - name: "service-account"
+              mountPath: "/var/run/secret/cloud.google.com"
+          lifecycle:
+            postStart:
+              exec:
+                command: ["gcsfuse", "k6storage", "/k6storage-mount"]
+            preStop:
+              exec:
+                command: ["fusermount", "-u", "/k6storage-mount"]
+      volumes:
+        - name: "service-account"
+          secret:
+            secretName: "k6-sa-key"
